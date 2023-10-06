@@ -6,21 +6,41 @@
 //
 
 import SwiftUI
+import HealthKit
 
-struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+class HeartRateFetcher {
+    
+    let healthStore = HKHealthStore()
+    
+    func fetchHeartRateData() {
+        // Define the Predicate
+        let startDate = Date().addingTimeInterval(-3600) // 1 hour ago
+        let endDate = Date() // Now
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        
+        // Define and Execute the Query
+        let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate)!
+        let query = HKSampleQuery(sampleType: heartRateType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { (query, samples, error) in
+            // Your completion code here
         }
-        .padding()
+        healthStore.execute(query)
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
+struct HeartRateView: View {
+    
+    var hrfetchController = HeartRateFetcher()
+    
+    var body: some View {
+        Text("Heart Rate Data")
+            .onAppear {
+                hrfetchController.fetchHeartRateData()
+            }
+    }
+}
+
+struct HeartRateView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        HeartRateView()
     }
 }
